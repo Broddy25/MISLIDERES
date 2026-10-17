@@ -1,0 +1,61 @@
+name: Construir APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Crear proyecto Android
+        run: npx cap add android
+
+      - name: Ícono y color de la app
+        run: |
+          cp -r resources/android/res/. android/app/src/main/res/
+          sed -i 's/#FFFFFF/#0D5C4A/I' android/app/src/main/res/values/ic_launcher_background.xml
+
+      - name: Copiar la app al proyecto
+        run: npx cap sync android
+
+      - name: Aceptar licencias del SDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - name: Compilar APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Guardar APK como archivo del workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: MisLideres-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publicar enlace de descarga
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk MisLideres.apk
+          gh release delete apk --yes --cleanup-tag || true
+          gh release create apk MisLideres.apk --title "Mis Líderes (APK)" --notes "Descarga MisLideres.apk e instálalo en tu teléfono Android."

@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d5c4a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mis Líderes">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Mis Líderes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: agenda de una columna; formulario arriba, mensaje común, lista de líderes con tres botones de acción por fila */
+:root {
+  --bg: #f2f5f1;
+  --surface: #ffffff;
+  --fg: #16211b;
+  --muted: #5d6b63;
+  --line: #d9e0da;
+  --accent: #0d5c4a;
+  --accent-fg: #ffffff;
+  --wa: #168a4a;
+  --sms: #2a5fd0;
+  --call: #16211b;
+  --danger: #b3261e;
+  --focus: #1b7fe0;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101713; --surface: #18221c; --fg: #e8efe9; --muted: #98a89e; --line: #2b3a31;
+    --accent: #4fc3a1; --accent-fg: #07251c; --wa: #3ecf7a; --sms: #7ea3ff; --call: #e8efe9; --danger: #ff8a80; --focus: #6db3ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101713; --surface: #18221c; --fg: #e8efe9; --muted: #98a89e; --line: #2b3a31;
+  --accent: #4fc3a1; --accent-fg: #07251c; --wa: #3ecf7a; --sms: #7ea3ff; --call: #e8efe9; --danger: #ff8a80; --focus: #6db3ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.45; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 660px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 7vw, 38px); line-height: 1.05; margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.count { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.panel h2 { font-family: var(--font-display); font-size: 17px; font-weight: 700; margin: 0; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; min-width: 0; }
+.field.narrow { flex: 0 0 96px; }
+label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+input, textarea { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; width: 100%; min-width: 0; }
+textarea { resize: vertical; min-height: 64px; }
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.8; }
+input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.btn { font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer; background: var(--accent); color: var(--accent-fg); }
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.btn.small { padding: 6px 10px; font-size: 13px; }
+.err { color: var(--danger); font-size: 13px; min-height: 18px; margin: 0; }
+.hint { color: var(--muted); font-size: 13px; margin: 0; }
+.search { display: flex; }
+ul.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+li.item { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.avatar { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.id { min-width: 0; flex: 1; }
+.name { font-weight: 600; font-size: 16px; overflow-wrap: anywhere; }
+.phone { font-family: var(--font-mono); font-size: 14px; color: var(--muted); user-select: all; overflow-wrap: anywhere; }
+.tools { display: flex; gap: 6px; flex: 0 0 auto; }
+.actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.act { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-weight: 600; font-size: 14px; padding: 10px 8px; border-radius: 8px; border: 1.5px solid currentColor; background: transparent; }
+.act svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.act:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.act.wa { color: var(--wa); } .act.sms { color: var(--sms); } .act.call { color: var(--call); }
+.empty { border: 1.5px dashed var(--line); border-radius: 10px; padding: 28px 18px; text-align: center; color: var(--muted); }
+.empty strong { display: block; color: var(--fg); font-family: var(--font-display); font-size: 18px; margin-bottom: 4px; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 16px; border-radius: 8px; font-size: 14px; z-index: 5; }
+@media (max-width: 420px) { .act span { font-size: 13px; } .field.narrow { flex: 1 1 100%; } }
+@media (prefers-reduced-motion: no-preference) { li.item { animation: in .18s ease-out; } @keyframes in { from { opacity: 0; transform: translateY(4px); } } }
+.sr { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.sr:focus-visible + label { outline: 2px solid var(--focus); outline-offset: 2px; }
+.filebtn { display: inline-block; text-transform: none; letter-spacing: 0; font-size: 15px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="head">
+    <h1>Mis Líderes</h1>
+    <span class="count" id="count"></span>
+    <button class="btn small" id="install" type="button" hidden>Instalar app</button>
+  </div>
+
+  <form class="panel" id="addForm" autocomplete="off">
+    <h2>Agregar líder</h2>
+    <div class="row">
+      <div class="field"><label for="name">Nombre</label><input id="name" placeholder="Ej: María Pérez" maxlength="80"></div>
+      <div class="field"><label for="phone">Teléfono</label><input id="phone" type="tel" inputmode="tel" placeholder="Ej: 0414 555 1234" maxlength="25"></div>
+    </div>
+    <p class="err" id="err" role="alert"></p>
+    <div class="row"><button class="btn" type="submit">Agregar a la lista</button></div>
+  </form>
+
+  <section class="panel">
+    <h2>Cargar lista desde Excel</h2>
+    <p class="hint">Elige un archivo .xlsx o .csv con una columna de nombres y otra de teléfonos. Los números repetidos se omiten.</p>
+    <div class="row">
+      <input id="file" class="sr" type="file" accept=".xlsx,.csv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
+      <label class="btn filebtn" for="file">Elegir archivo</label>
+      <button class="btn ghost" id="clear" type="button">Vaciar lista</button>
+    </div>
+    <p class="hint" id="importMsg" role="status"></p>
+  </section>
+
+  <section class="panel">
+    <h2>Mensaje y país</h2>
+    <div class="row">
+      <div class="field"><label for="msg">Mensaje para SMS y WhatsApp</label><textarea id="msg" placeholder="Escribe el mensaje que quieres enviar a tus líderes"></textarea></div>
+      <div class="field narrow"><label for="cc">País (+)</label><input id="cc" inputmode="numeric" value="58" maxlength="4"></div>
+    </div>
+    <p class="hint">Los números que empiezan con 0 se convierten solos al formato internacional con este código (58 es Venezuela).</p>
+  </section>
+
+  <div class="search"><input id="q" type="search" placeholder="Buscar por nombre o teléfono" aria-label="Buscar líder"></div>
+  <ul class="list" id="list"></ul>
+  <p class="hint" id="note"></p>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var contacts = [];
+  var store = null;      /* { add, remove } */
+  var pendingDelete = null;
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  $('msg').value = lsGet('lideres.msg') || 'Hola, te escribo para coordinar. ¿Cómo estás?';
+  $('cc').value = lsGet('lideres.cc') || '58';
+  $('msg').addEventListener('input', function () { lsSet('lideres.msg', $('msg').value); render(); });
+  $('cc').addEventListener('input', function () { lsSet('lideres.cc', $('cc').value); render(); });
+  $('q').addEventListener('input', render);
+
+  function intl(p) {
+    var raw = String(p).trim();
+    var plus = raw.charAt(0) === '+';
+    var d = raw.replace(/\D/g, '');
+    if (plus) return d;
+    if (d.indexOf('00') === 0) return d.slice(2);
+    var cc = ($('cc').value || '').replace(/\D/g, '');
+    if (cc && d.indexOf(cc) === 0 && d.length > 10) return d;
+    if (d.charAt(0) === '0') d = d.slice(1);
+    return cc + d;
+  }
+
+  var ICONS = {
+    wa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l1.6-4.6A8.5 8.5 0 1 1 8 19.6L3 21z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1.2-1.3-1.8-1-.8.7c-1-.4-1.8-1.200-2.200-2.200l.7-.8-1-1.800L9 9.500z"/></svg>',
+    sms: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4V5z"/></svg>',
+    call: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>'
+  };
+
+  function action(cls, label, href, external) {
+    var a = document.createElement('a');
+    a.className = 'act ' + cls;
+    a.href = href;
+    if (external) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+    a.innerHTML = ICONS[cls];
+    var s = document.createElement('span'); s.textContent = label; a.appendChild(s);
+    return a;
+  }
+
+  function toast(t) {
+    var el = $('toast'); el.textContent = t; el.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 1800);
+  }
+
+  function copy(text) {
+    var done = function () { toast('Número copiado'); };
+    var fallback = function () {
+      var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) { toast('Selecciona el número y cópialo'); }
+      document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+  }
+
+  function render() {
+    var q = $('q').value.trim().toLowerCase();
+    var list = contacts.filter(function (c) { return !q || c.name.toLowerCase().indexOf(q) > -1 || c.phone.indexOf(q) > -1; });
+    $('count').textContent = contacts.length + (contacts.length === 1 ? ' líder' : ' líderes');
+    var ul = $('list'); ul.textContent = '';
+    if (!list.length) {
+      var li = document.createElement('li'); li.className = 'empty';
+      li.innerHTML = '<strong></strong><span></span>';
+      li.firstChild.textContent = contacts.length ? 'Nadie coincide con la búsqueda' : 'Todavía no hay líderes';
+      li.lastChild.textContent = contacts.length ? 'Prueba con otro nombre o número.' : 'Escribe un nombre y un teléfono arriba y toca "Agregar a la lista".';
+      ul.appendChild(li); return;
+    }
+    var body = encodeURIComponent($('msg').value);
+    list.forEach(function (c) {
+      var n = intl(c.phone);
+      var li = document.createElement('li'); li.className = 'item';
+      var who = document.createElement('div'); who.className = 'who';
+      var av = document.createElement('div'); av.className = 'avatar'; av.textContent = (c.name.trim().charAt(0) || '?').toUpperCase();
+      var id = document.createElement('div'); id.className = 'id';
+      var nm = document.createElement('div'); nm.className = 'name'; nm.textContent = c.name;
+      var ph = document.createElement('div'); ph.className = 'phone'; ph.textContent = c.phone;
+      id.appendChild(nm); id.appendChild(ph);
+      var tools = document.createElement('div'); tools.className = 'tools';
+      var cp = document.createElement('button'); cp.className = 'btn ghost small'; cp.type = 'button'; cp.textContent = 'Copiar';
+      cp.addEventListener('click', function () { copy('+' + n); });
+      var del = document.createElement('button'); del.className = 'btn ghost small'; del.type = 'button';
+      del.textContent = pendingDelete === c.id ? 'Confirmar' : 'Borrar';
+      if (pendingDelete === c.id) del.style.color = 'var(--danger)';
+      del.addEventListener('click', function () {
+        if (pendingDelete === c.id) { pendingDelete = null; store.remove(c.id); }
+        else { pendingDelete = c.id; render(); setTimeout(function () { if (pendingDelete === c.id) { pendingDelete = null; render(); } }, 3500); }
+      });
+      tools.appendChild(cp); tools.appendChild(del);
+      who.appendChild(av); who.appendChild(id); who.appendChild(tools);
+      var acts = document.createElement('div'); acts.className = 'actions';
+      acts.appendChild(action('wa', 'WhatsApp', 'https://wa.me/' + n + (body ? '?text=' + body : ''), true));
+      acts.appendChild(action('sms', 'Mensaje', 'sms:+' + n + (body ? '?body=' + body : ''), false));
+      acts.appendChild(action('call', 'Llamar', 'tel:+' + n, false));
+      li.appendChild(who); li.appendChild(acts); ul.appendChild(li);
+    });
+  }
+
+  /* IMPORT-START */
+  function cell(v) { return v == null ? '' : String(v).trim(); }
+  function digits(v) { return String(v).replace(/\D/g, ''); }
+  function u16(b, o) { return b[o] | (b[o + 1] << 8); }
+  function u32(b, o) { return (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0; }
+
+  async function inflateRaw(bytes) {
+    var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  async function unzip(buf) {
+    var b = new Uint8Array(buf), files = {}, dec = new TextDecoder();
+    var e = b.length - 22;
+    while (e >= 0 && u32(b, e) !== 0x06054b50) e--;
+    if (e < 0) throw new Error('zip');
+    var count = u16(b, e + 10), p = u32(b, e + 16);
+    for (var i = 0; i < count; i++) {
+      if (u32(b, p) !== 0x02014b50) throw new Error('zip');
+      var method = u16(b, p + 10), csize = u32(b, p + 20);
+      var nlen = u16(b, p + 28), xlen = u16(b, p + 30), clen = u16(b, p + 32), off = u32(b, p + 42);
+      var name = dec.decode(b.subarray(p + 46, p + 46 + nlen));
+      p += 46 + nlen + xlen + clen;
+      if (!/^xl\/(sharedStrings\.xml|worksheets\/sheet\d+\.xml)$/.test(name)) continue;
+      var ds = off + 30 + u16(b, off + 26) + u16(b, off + 28);
+      var data = b.subarray(ds, ds + csize);
+      files[name] = dec.decode(method === 8 ? await inflateRaw(data) : data);
+    }
+    return files;
+  }
+
+  function xmlDoc(s) { return new DOMParser().parseFromString(s, 'application/xml'); }
+  function textOf(el) {
+    var t = '';
+    for (var n = el.firstChild; n; n = n.nextSibling) {
+      if (n.nodeName === 't') t += n.textContent;
+      else if (n.nodeName === 'r') { var tt = n.getElementsByTagName('t')[0]; if (tt) t += tt.textContent; }
+    }
+    return t;
+  }
+  function colIndex(ref) {
+    var m = /^([A-Z]+)/.exec(ref || ''); if (!m) return -1;
+    var n = 0; for (var i = 0; i < m[1].length; i++) n = n * 26 + m[1].charCodeAt(i) - 64;
+    return n - 1;
+  }
+
+  async function xlsxSheets(buf) {
+    var files = await unzip(buf), shared = [];
+    if (files['xl/sharedStrings.xml']) {
+      var sis = xmlDoc(files['xl/sharedStrings.xml']).getElementsByTagName('si');
+      for (var i = 0; i < sis.length; i++) shared.push(textOf(sis[i]));
+    }
+    var names = Object.keys(files).filter(function (n) { return n.indexOf('worksheets/') > -1; })
+      .sort(function (a, b) { return parseInt(a.replace(/\D/g, ''), 10) - parseInt(b.replace(/\D/g, ''), 10); });
+    return names.map(function (nm) {
+      var rows = [], cs = xmlDoc(files[nm]).getElementsByTagName('c');
+      for (var i = 0; i < cs.length; i++) {
+        var c = cs[i], ref = c.getAttribute('r'), t = c.getAttribute('t');
+        var row = parseInt((/\d+/.exec(ref) || [0])[0], 10) - 1, col = colIndex(ref);
+        if (row < 0 || col < 0) continue;
+        var val = '', v = c.getElementsByTagName('v')[0];
+        if (t === 'inlineStr') { var is = c.getElementsByTagName('is')[0]; val = is ? textOf(is) : ''; }
+        else if (v) {
+          val = v.textContent;
+          if (t === 's') val = shared[parseInt(val, 10)] || '';
+          else if ((!t || t === 'n') && /^-?[\d.]+e\+?\d+$/i.test(val)) val = Number(val).toLocaleString('fullwide', { useGrouping: false });
+        }
+        (rows[row] = rows[row] || [])[col] = val;
+      }
+      return Array.from(rows, function (r) { return r || []; });
+    });
+  }
+
+  function decodeText(buf) {
+    try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+    catch (e) { return new TextDecoder('windows-1252').decode(buf); }
+  }
+
+  function csvRows(text) {
+    text = text.replace(/^﻿/, '');
+    var first = text.split(/\r?\n/, 1)[0];
+    var sep = [';', '\t', ','].reduce(function (best, s) { return first.split(s).length > first.split(best).length ? s : best; }, ',');
+    var rows = [], row = [], cur = '', q = false;
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === sep) { row.push(cur); cur = ''; }
+      else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cur); rows.push(row); row = []; cur = ''; }
+      else cur += ch;
+    }
+    row.push(cur); rows.push(row);
+    return rows;
+  }
+
+  function parseRows(rows) {
+    rows = rows.filter(function (r) { return r.some(function (c) { return cell(c) !== ''; }); });
+    if (!rows.length) return [];
+    var ni = -1, pi = -1;
+    rows[0].forEach(function (c, i) {
+      var t = cell(c).toLowerCase();
+      if (ni < 0 && /nombre|name|l[ií]der|contacto/.test(t)) ni = i;
+      else if (pi < 0 && /tel|cel|phone|whats|m[oó]vil|movil|n[uú]mero|numero/.test(t)) pi = i;
+    });
+    var hasHeader = ni > -1 || pi > -1;
+    if (hasHeader) rows = rows.slice(1);
+    if (ni < 0 && pi < 0) {
+      ni = 0; pi = 1;
+      var r0 = rows[0] || [];
+      if (digits(cell(r0[0])).length >= 7 && digits(cell(r0[1])).length < 7) { ni = 1; pi = 0; }
+    } else if (ni < 0) ni = pi === 0 ? 1 : 0;
+    else if (pi < 0) pi = ni === 0 ? 1 : 0;
+    return rows.map(function (r) { return { name: cell(r[ni]), phone: cell(r[pi]) }; })
+      .filter(function (x) { return x.name || x.phone; });
+  }
+
+  async function fileSheets(file) {
+    var buf = await file.arrayBuffer(), u = new Uint8Array(buf);
+    if (u[0] === 0x50 && u[1] === 0x4b) return xlsxSheets(buf);
+    if (u[0] === 0xd0 && u[1] === 0xcf) throw new Error('xls');
+    return [csvRows(decodeText(buf))];
+  }
+  /* IMPORT-END */
+
+  function importMsg(t) { $('importMsg').textContent = t; }
+
+  $('file').addEventListener('change', async function () {
+    var input = this, f = input.files[0];
+    if (!f) return;
+    importMsg('Leyendo ' + f.name + '…');
+    try {
+      var sheets = await fileSheets(f), found = [];
+      var parsed = sheets.map(function (rows) { return parseRows(rows); });
+      var useful = parsed.filter(function (list) { return list.some(function (x) { return x.name && digits(x.phone).length >= 7; }); });
+      (useful.length ? useful : parsed).forEach(function (list) { found = found.concat(list); });
+      var seen = {}; contacts.forEach(function (c) { seen[intl(c.phone)] = 1; });
+      var fresh = [], bad = 0, dup = 0;
+      found.forEach(function (x) {
+        if (!x.name || digits(x.phone).length < 7) { bad++; return; }
+        var k = intl(x.phone);
+        if (seen[k]) { dup++; return; }
+        seen[k] = 1; fresh.push(x);
+      });
+      if (fresh.length) { importMsg('Guardando ' + fresh.length + ' líderes…'); await store.addMany(fresh); }
+      var msg = fresh.length ? 'Se agregaron ' + fresh.length + (fresh.length === 1 ? ' líder.' : ' líderes.') : 'No se agregó ningún líder.';
+      if (dup) msg += ' ' + dup + (dup === 1 ? ' repetido omitido.' : ' repetidos omitidos.');
+      if (bad) msg += ' ' + bad + (bad === 1 ? ' fila sin nombre o sin teléfono válido.' : ' filas sin nombre o sin teléfono válido.');
+      if (!fresh.length && !dup && !bad) msg = 'El archivo está vacío. Usa una columna Nombre y una columna Teléfono.';
+      importMsg(msg);
+    } catch (e) {
+      importMsg(e && e.message === 'xls'
+        ? 'Ese es un Excel antiguo (.xls). Ábrelo en Excel y guárdalo como .xlsx o .csv.'
+        : 'No se pudo leer el archivo. Usa un .xlsx o .csv con una columna Nombre y una columna Teléfono.');
+    }
+    input.value = '';
+  });
+
+  var clearArmed = false, clearTimer = null;
+  function clearReset() { clearArmed = false; clearTimeout(clearTimer); $('clear').textContent = 'Vaciar lista'; $('clear').style.color = ''; }
+  $('clear').addEventListener('click', async function () {
+    if (!contacts.length) { importMsg('La lista ya está vacía.'); return; }
+    if (!clearArmed) {
+      clearArmed = true; this.textContent = 'Confirmar: borrar ' + contacts.length; this.style.color = 'var(--danger)';
+      clearTimer = setTimeout(clearReset, 4000); return;
+    }
+    clearReset();
+    try { await store.clear(); importMsg('Lista vaciada.'); } catch (e) { importMsg('No se pudo vaciar la lista.'); }
+  });
+
+  $('addForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = $('name').value.trim(), phone = $('phone').value.trim();
+    if (!name) { $('err').textContent = 'Escribe el nombre del líder.'; $('name').focus(); return; }
+    if (phone.replace(/\D/g, '').length < 7) { $('err').textContent = 'Escribe un teléfono con al menos 7 dígitos.'; $('phone').focus(); return; }
+    $('err').textContent = '';
+    store.add(name, phone).then(function () { $('name').value = ''; $('phone').value = ''; $('name').focus(); toast('Líder agregado'); },
+      function () { $('err').textContent = 'No se pudo guardar. Intenta de nuevo.'; });
+  });
+
+  function sortContacts() { contacts.sort(function (a, b) { return a.name.localeCompare(b.name, 'es'); }); }
+
+  function localStore() {
+    try { contacts = JSON.parse(lsGet('lideres.list') || '[]'); } catch (e) { contacts = []; }
+    var save = function () { lsSet('lideres.list', JSON.stringify(contacts)); sortContacts(); render(); };
+    store = {
+      add: function (name, phone) { contacts.push({ id: 'c' + Date.now(), name: name, phone: phone }); save(); return Promise.resolve(); },
+      addMany: function (items) { items.forEach(function (it, i) { contacts.push({ id: 'c' + Date.now() + '-' + i, name: it.name, phone: it.phone }); }); save(); return Promise.resolve(); },
+      clear: function () { contacts = []; save(); return Promise.resolve(); },
+      remove: function (id) { contacts = contacts.filter(function (c) { return c.id !== id; }); save(); }
+    };
+    sortContacts(); render();
+  }
+
+  $('note').textContent = 'Tu lista se guarda en este teléfono y funciona sin conexión.';
+  localStore();
+
+  /* Botón para instalar la app */
+  var deferred = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); deferred = e; $('install').hidden = false;
+  });
+  $('install').addEventListener('click', function () {
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function () { deferred = null; $('install').hidden = true; });
+  });
+  window.addEventListener('appinstalled', function () { $('install').hidden = true; });
+
+})();
+</script>
+
+</body>
+</html>
